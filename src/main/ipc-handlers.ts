@@ -59,8 +59,15 @@ export function setupIpcHandlers(getWindow: () => BrowserWindow | undefined): vo
   });
 
   ipcMain.handle(IPC_CHANNELS.FILE_REVEAL, (_event, filePath: string) => {
-    revealInFinder(filePath);
-    return { success: true };
+    console.log('Revealing file:', filePath);
+    try {
+      revealInFinder(filePath);
+      console.log('Reveal completed');
+      return { success: true };
+    } catch (error) {
+      console.error('Reveal error:', error);
+      return { success: false, error: String(error) };
+    }
   });
 
   ipcMain.handle(IPC_CHANNELS.FILE_COPY_PATH, (_event, filePath: string) => {

@@ -147,12 +147,19 @@ if (!gotTheLock) {
     });
 
     // Register global shortcut
-    const registered = globalShortcut.register('Alt+Space', () => {
+    const shortcut = 'Option+Space';
+    console.log(`Attempting to register shortcut: ${shortcut}`);
+
+    const registered = globalShortcut.register(shortcut, () => {
+      console.log('Shortcut triggered!');
       toggleWindow();
     });
 
-    if (!registered) {
-      console.warn('Failed to register global shortcut: Alt+Space');
+    if (registered) {
+      console.log(`✅ Shortcut registered successfully: ${shortcut}`);
+      console.log(`Is registered: ${globalShortcut.isRegistered(shortcut)}`);
+    } else {
+      console.error(`❌ Failed to register shortcut: ${shortcut}`);
     }
 
     console.log('SpotSearch is ready!');
