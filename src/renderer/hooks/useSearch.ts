@@ -8,6 +8,7 @@ export function useSearch() {
     query,
     exactMatch,
     selectedFileTypes,
+    extension,
     results,
     isSearching,
     stats,
@@ -71,6 +72,7 @@ export function useSearch() {
         query: query.trim(),
         exactMatch,
         fileTypes: selectedFileTypes,
+        extension: extension.trim() || undefined,
       });
     }, DEBOUNCE_DELAY);
 
@@ -79,7 +81,7 @@ export function useSearch() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [query, exactMatch, selectedFileTypes, clearResults, setIsSearching, setError]);
+  }, [query, exactMatch, selectedFileTypes, extension, clearResults, setIsSearching, setError]);
 
   const cancelSearch = useCallback(() => {
     if (debounceRef.current) {

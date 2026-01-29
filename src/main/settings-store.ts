@@ -10,6 +10,7 @@ const defaults: StoreSchema = {
     exactMatch: false,
     selectedFileTypes: ['all'],
     globalHotkey: 'Alt+Space',
+    extension: '',
   },
 };
 
@@ -30,7 +31,8 @@ export function setSettings(settings: Partial<Settings>): Settings {
 }
 
 export function getSetting<K extends keyof Settings>(key: K): Settings[K] {
-  return store.get(`settings.${key}`) as Settings[K];
+  const settings = store.get('settings');
+  return settings[key];
 }
 
 export function setSetting<K extends keyof Settings>(

@@ -132,17 +132,16 @@ body {
 .filter-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 8px 16px;
-  gap: 12px;
   border-bottom: 1px solid var(--border-color);
   overflow-x: auto;
 }
 
 .filter-chips {
   display: flex;
+  align-items: center;
   gap: 6px;
-  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 .filter-chip {
@@ -175,11 +174,37 @@ body {
   font-size: 14px;
 }
 
-.filter-options {
+.extension-filter {
   display: flex;
   align-items: center;
-  gap: 8px;
+  margin-right: 8px;
   flex-shrink: 0;
+}
+
+.extension-input {
+  width: 60px;
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.extension-input:focus {
+  border-color: var(--accent-color);
+  background: var(--bg-hover);
+}
+
+.extension-input::placeholder {
+  color: var(--text-muted);
+}
+
+.extension-input:focus {
+  border-color: var(--accent-color);
+  background: var(--bg-hover);
 }
 
 .exact-match-toggle {

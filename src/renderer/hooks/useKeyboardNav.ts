@@ -70,7 +70,11 @@ export function useKeyboardNav({ inputRef, listRef }: UseKeyboardNavOptions) {
           break;
 
         case 'Tab':
-          // Prevent tab from leaving the window
+          // Allow normal tab behavior when in an input field
+          if (document.activeElement instanceof HTMLInputElement) {
+            return; // Let Tab work normally for focus navigation
+          }
+          // Otherwise use Tab for result navigation
           event.preventDefault();
           if (event.shiftKey) {
             selectPrevious();
@@ -100,12 +104,12 @@ export function useKeyboardNav({ inputRef, listRef }: UseKeyboardNavOptions) {
           break;
 
         default:
-          // If typing a character, focus the input
+          // If typing a character and not in any input, focus the main input
           if (
             event.key.length === 1 &&
             !event.metaKey &&
             !event.ctrlKey &&
-            document.activeElement !== inputRef.current
+            !(document.activeElement instanceof HTMLInputElement)
           ) {
             inputRef.current?.focus();
           }

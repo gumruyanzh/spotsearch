@@ -21,11 +21,21 @@ const FILTER_CHIPS: FilterChip[] = [
 ];
 
 export function FilterBar() {
-  const { selectedFileTypes, toggleFileType, exactMatch, setExactMatch } =
+  const { selectedFileTypes, toggleFileType, exactMatch, setExactMatch, extension, setExtension } =
     useSearchStore();
 
   return (
     <div className="filter-bar">
+      <div className="extension-filter">
+        <input
+          type="text"
+          className="extension-input"
+          placeholder=".py"
+          value={extension}
+          onChange={(e) => setExtension(e.target.value)}
+          title="Filter by extension (e.g., .py, .sh)"
+        />
+      </div>
       <div className="filter-chips">
         {FILTER_CHIPS.map((chip) => (
           <button
@@ -41,16 +51,14 @@ export function FilterBar() {
           </button>
         ))}
       </div>
-      <div className="filter-options">
-        <label className="exact-match-toggle">
-          <input
-            type="checkbox"
-            checked={exactMatch}
-            onChange={(e) => setExactMatch(e.target.checked)}
-          />
-          <span>Exact match</span>
-        </label>
-      </div>
+      <label className="exact-match-toggle">
+        <input
+          type="checkbox"
+          checked={exactMatch}
+          onChange={(e) => setExactMatch(e.target.checked)}
+        />
+        <span>Exact</span>
+      </label>
     </div>
   );
 }

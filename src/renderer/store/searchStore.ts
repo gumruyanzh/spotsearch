@@ -6,6 +6,7 @@ interface SearchState {
   query: string;
   exactMatch: boolean;
   selectedFileTypes: FileTypeFilter[];
+  extension: string;
 
   // Results
   results: SearchResult[];
@@ -21,6 +22,7 @@ interface SearchState {
   setExactMatch: (exactMatch: boolean) => void;
   setSelectedFileTypes: (types: FileTypeFilter[]) => void;
   toggleFileType: (type: FileTypeFilter) => void;
+  setExtension: (extension: string) => void;
 
   addResult: (result: SearchResult) => void;
   clearResults: () => void;
@@ -39,6 +41,7 @@ const initialState = {
   query: '',
   exactMatch: false,
   selectedFileTypes: ['all'] as FileTypeFilter[],
+  extension: '',
   results: [] as SearchResult[],
   isSearching: false,
   stats: null,
@@ -52,6 +55,8 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   setQuery: (query) => set({ query }),
 
   setExactMatch: (exactMatch) => set({ exactMatch }),
+
+  setExtension: (extension) => set({ extension }),
 
   setSelectedFileTypes: (types) => set({ selectedFileTypes: types }),
 

@@ -13,6 +13,7 @@ export interface SearchOptions {
   query: string;
   exactMatch: boolean;
   fileTypes: FileTypeFilter[];
+  extension?: string;
 }
 
 export type FileTypeFilter =
@@ -35,6 +36,7 @@ export interface Settings {
   exactMatch: boolean;
   selectedFileTypes: FileTypeFilter[];
   globalHotkey: string;
+  extension: string;
 }
 
 export interface FileMetadata {
