@@ -21,6 +21,11 @@ export const IPC_CHANNELS = {
   // Window
   WINDOW_HIDE: 'window:hide',
   WINDOW_SHOW: 'window:show',
+
+  // Clipboard
+  CLIPBOARD_GET: 'clipboard:get',
+  CLIPBOARD_CLEAR: 'clipboard:clear',
+  CLIPBOARD_COPY: 'clipboard:copy',
 } as const;
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];

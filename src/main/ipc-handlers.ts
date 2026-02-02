@@ -11,6 +11,7 @@ import {
   getFileMetadata,
 } from './file-actions';
 import { getSettings, setSettings, getSetting, setSetting } from './settings-store';
+import { getClipboardHistory, clearClipboardHistory, copyFromHistory } from './clipboard-monitor';
 
 export function setupIpcHandlers(getWindow: () => BrowserWindow | undefined): void {
   // Search handlers
@@ -111,4 +112,18 @@ export function setupIpcHandlers(getWindow: () => BrowserWindow | undefined): vo
       return getSettings();
     }
   );
+
+  // Clipboard handlers
+  ipcMain.handle(IPC_CHANNELS.CLIPBOARD_GET, () => {
+    return getClipboardHistory();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CLIPBOARD_CLEAR, () => {
+    clearClipboardHistory();
+    return { success: true };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CLIPBOARD_COPY, (_event, id: string) => {
+    return { success: copyFromHistory(id) };
+  });
 }

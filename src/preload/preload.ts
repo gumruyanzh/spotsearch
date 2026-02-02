@@ -79,6 +79,11 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('window:blur', handler);
     return () => ipcRenderer.removeListener('window:blur', handler);
   },
+
+  // Clipboard
+  getClipboardHistory: () => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_GET),
+  clearClipboardHistory: () => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_CLEAR),
+  copyFromClipboardHistory: (id: string) => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_COPY, id),
 });
 
 // Type declarations for the exposed API
@@ -103,6 +108,9 @@ declare global {
       hideWindow: () => void;
       onWindowFocus: (callback: () => void) => () => void;
       onWindowBlur: (callback: () => void) => () => void;
+      getClipboardHistory: () => Promise<Array<{ id: string; text: string; timestamp: number }>>;
+      clearClipboardHistory: () => Promise<{ success: boolean }>;
+      copyFromClipboardHistory: (id: string) => Promise<{ success: boolean }>;
     };
   }
 }

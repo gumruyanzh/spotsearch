@@ -11,6 +11,10 @@ export default defineConfig({
       '@shared': resolve(__dirname, 'src/shared'),
     },
   },
+  server: {
+    port: 5188,
+    strictPort: true,
+  },
   build: {
     outDir: resolve(__dirname, '.vite/renderer/main_window'),
   },

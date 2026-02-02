@@ -2,6 +2,7 @@ import { app, ipcMain, Tray, BrowserWindow, nativeImage, globalShortcut, screen 
 import { join } from 'path';
 import { setupIpcHandlers } from './ipc-handlers';
 import { IPC_CHANNELS } from '../shared/ipc-channels';
+import { startClipboardMonitor, stopClipboardMonitor } from './clipboard-monitor';
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -17,6 +18,7 @@ try {
 
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
+let isTogglingWindow = false;
 
 function createWindow(): void {
   const indexUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL
@@ -50,12 +52,13 @@ function createWindow(): void {
 
   mainWindow.on('blur', () => {
     // Delay hide slightly to allow button clicks to complete
+    // Skip if we're in the middle of toggling
     setTimeout(() => {
-      if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow && !mainWindow.isDestroyed() && !isTogglingWindow) {
         mainWindow.hide();
         mainWindow.webContents.send('window:blur');
       }
-    }, 100);
+    }, 150);
   });
 
   mainWindow.on('show', () => {
@@ -105,11 +108,19 @@ function createTray(): void {
 function toggleWindow(): void {
   if (!mainWindow) return;
 
+  isTogglingWindow = true;
+
   if (mainWindow.isVisible()) {
     mainWindow.hide();
+    mainWindow.webContents.send('window:blur');
   } else {
     showWindow();
   }
+
+  // Reset flag after a short delay
+  setTimeout(() => {
+    isTogglingWindow = false;
+  }, 200);
 }
 
 function showWindow(): void {
@@ -144,6 +155,7 @@ if (!gotTheLock) {
     createWindow();
     createTray();
     setupIpcHandlers(getWindow);
+    startClipboardMonitor();
 
     // Handle window hide request from renderer
     ipcMain.on(IPC_CHANNELS.WINDOW_HIDE, () => {
@@ -177,5 +189,6 @@ if (!gotTheLock) {
 
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
+    stopClipboardMonitor();
   });
 }
