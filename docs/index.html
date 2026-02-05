@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpotSearch - Fast File Search for macOS</title>
+  <meta name="description" content="A fast, lightweight file search application for macOS with a clean, Spotlight-like interface. Press Option+Space to search instantly.">
+  <meta name="theme-color" content="#1e1e1e">
+  <link rel="icon" type="image/png" href="logo.png">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #121212;
+      --bg-secondary: rgba(45, 45, 45, 0.9);
+      --bg-hover: rgba(60, 60, 60, 0.9);
+      --bg-card: rgba(30, 30, 30, 0.95);
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #707070;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --success-color: #22c55e;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 80px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- Nav ---- */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      background: rgba(18, 18, 18, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .nav-brand img {
+      width: 28px;
+      height: 28px;
+      filter: brightness(0) invert(1);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-github {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-github svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* ---- Sections ---- */
+    section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 18px;
+      margin-bottom: 48px;
+    }
+
+    /* ---- Hero ---- */
+    .hero {
+      text-align: center;
+      padding: 100px 24px 60px;
+    }
+
+    .hero-logo {
+      width: 96px;
+      height: 96px;
+      filter: brightness(0) invert(1);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .hero-tagline {
+      font-size: 22px;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent-color);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .hero-brew {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .hero-brew code {
+      background: var(--bg-secondary);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* ---- App Preview ---- */
+    .preview {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .preview-window {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .preview-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+      background: rgba(40, 40, 40, 0.9);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .traffic-light {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .tl-red { background: #ff5f57; }
+    .tl-yellow { background: #febc2e; }
+    .tl-green { background: #28c840; }
+
+    .preview-body {
+      padding: 20px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .preview-search {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+
+    .preview-search-icon {
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+
+    .preview-search-text {
+      color: var(--text-primary);
+      font-size: 16px;
+    }
+
+    .preview-search-text .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 18px;
+      background: var(--accent-color);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .preview-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preview-chip {
+      padding: 4px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .preview-chip.active {
+      background: var(--accent-color);
+      border-color: var(--accent-color);
+      color: #fff;
+    }
+
+    .preview-result {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: transparent;
+    }
+
+    .preview-result.selected {
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    .preview-result-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .preview-result-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .preview-result-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .preview-result-path {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .preview-result-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ---- Features ---- */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 28px 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ---- Install ---- */
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .install-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 32px;
+    }
+
+    .install-card h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .install-card .install-desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .code-block {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .code-block code {
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .copy-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .copy-btn.copied {
+      background: var(--success-color);
+      border-color: var(--success-color);
+      color: #fff;
+    }
+
+    .install-note {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    .install-note strong {
+      color: var(--text-secondary);
+    }
+
+    /* ---- Shortcuts ---- */
+    .shortcuts-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .shortcuts-table th,
+    .shortcuts-table td {
+      text-align: left;
+      padding: 14px 24px;
+    }
+
+    .shortcuts-table thead {
+      background: var(--bg-secondary);
+    }
+
+    .shortcuts-table th {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .shortcuts-table tbody tr {
+      border-top: 1px solid var(--border-color);
+    }
+
+    .shortcuts-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .shortcuts-table td:first-child {
+      width: 220px;
+    }
+
+    .shortcuts-table td:last-child {
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 4px 10px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      line-height: 1;
+    }
+
+    /* ---- Footer ---- */
+    .footer {
+      border-top: 1px solid var(--border-color);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .footer-copy {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 900px) {
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 700px) {
+      .nav {
+        padding: 0 16px;
+      }
+
+      .nav-links {
+        gap: 16px;
+      }
+
+      .nav-links .nav-link-text {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 40px;
+      }
+
+      .hero-tagline {
+        font-size: 18px;
+      }
+
+      .hero-ctas {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .section-title {
+        font-size: 26px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .install-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .shortcuts-table td:first-child {
+        width: auto;
+      }
+
+      .preview {
+        padding: 0 16px 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a href="#" class="nav-brand">
+      <img src="logo.png" alt="SpotSearch">
+      SpotSearch
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="nav-link-text">Features</a>
+      <a href="#install" class="nav-link-text">Install</a>
+      <a href="#shortcuts" class="nav-link-text">Shortcuts</a>
+      <a href="https://github.com/Softorize/spotsearch" class="nav-github" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        <span class="nav-link-text">GitHub</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <img src="logo.png" alt="SpotSearch" class="hero-logo">
+    <h1>SpotSearch</h1>
+    <p class="hero-tagline">A fast, lightweight file search app for macOS with a clean, Spotlight-like interface.</p>
+    <div class="hero-ctas">
+      <a href="https://github.com/Softorize/spotsearch/releases/latest" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download v1.4.0
+      </a>
+      <a href="https://github.com/Softorize/spotsearch" class="btn btn-secondary" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor" width="20" height="20"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+    <p class="hero-brew">Also available via <code>brew install --cask spotsearch</code></p>
+  </section>
+
+  <!-- App Preview -->
+  <div class="preview">
+    <div class="preview-window">
+      <div class="preview-titlebar">
+        <span class="traffic-light tl-red"></span>
+        <span class="traffic-light tl-yellow"></span>
+        <span class="traffic-light tl-green"></span>
+      </div>
+      <div class="preview-body">
+        <div class="preview-search">
+          <span class="preview-search-icon">&#x1F50D;</span>
+          <span class="preview-search-text">project report<span class="cursor"></span></span>
+        </div>
+        <div class="preview-filters">
+          <span class="preview-chip active">All</span>
+          <span class="preview-chip">Docs</span>
+          <span class="preview-chip">Images</span>
+          <span class="preview-chip">PDFs</span>
+          <span class="preview-chip">Code</span>
+          <span class="preview-chip">Folders</span>
+        </div>
+        <div class="preview-result selected">
+          <span class="preview-result-icon">&#x1F4C4;</span>
+          <div class="preview-result-info">
+            <div class="preview-result-name">Project Report Q4.pdf</div>
+            <div class="preview-result-path">~/Documents/Work/Reports</div>
+          </div>
+          <div class="preview-result-meta">2.4 MB<br>Today</div>
+        </div>
+        <div class="preview-result">
+          <span class="preview-result-icon">&#x1F4C1;</span>
+          <div class="preview-result-info">
+            <div class="preview-result-name">project-report-assets</div>
+            <div class="preview-result-path">~/Documents/Work</div>
+          </div>
+          <div class="preview-result-meta">--<br>Yesterday</div>
+        </div>
+        <div class="preview-result">
+          <span class="preview-result-icon">&#x1F4DD;</span>
+          <div class="preview-result-info">
+            <div class="preview-result-name">project_report_notes.txt</div>
+            <div class="preview-result-path">~/Desktop</div>
+          </div>
+          <div class="preview-result-meta">12 KB<br>Dec 28</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section id="features">
+    <h2 class="section-title">Features</h2>
+    <p class="section-subtitle">Everything you need to find files fast.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#x26A1;</div>
+        <h3>Instant Search</h3>
+        <p>Blazing-fast file search powered by macOS native mdfind. Results appear as you type.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x2328;&#xFE0F;</div>
+        <h3>Option + Space</h3>
+        <p>Global hotkey launches SpotSearch from anywhere. No need to switch apps or click around.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4BB;</div>
+        <h3>Menu Bar App</h3>
+        <p>Lives quietly in your menu bar. Always one click or keystroke away, never in your dock.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F50D;</div>
+        <h3>Smart Filters</h3>
+        <p>Filter results by file type: Documents, Images, PDFs, Code, Audio, Video, and more.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4CE;</div>
+        <h3>Extension Filter</h3>
+        <p>Narrow results to a specific file extension like .swift, .tsx, or .json for precise searches.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F441;&#xFE0F;</div>
+        <h3>Quick Preview</h3>
+        <p>Press Space to preview any file with macOS Quick Look without opening it.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4CB;</div>
+        <h3>Clipboard History</h3>
+        <p>Access your recent clipboard entries and paste them with a single click. Never lose a copied snippet.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Install -->
+  <section id="install">
+    <h2 class="section-title">Install</h2>
+    <p class="section-subtitle">Get SpotSearch up and running in seconds.</p>
+    <div class="install-grid">
+      <div class="install-card">
+        <h3>Homebrew</h3>
+        <p class="install-desc">Install and update with a single command.</p>
+        <div class="code-block">
+          <code>brew tap Softorize/tap</code>
+          <button class="copy-btn" onclick="copyCode(this, 'brew tap Softorize/tap')">Copy</button>
+        </div>
+        <div class="code-block">
+          <code>brew install --cask spotsearch</code>
+          <button class="copy-btn" onclick="copyCode(this, 'brew install --cask spotsearch')">Copy</button>
+        </div>
+      </div>
+      <div class="install-card">
+        <h3>Direct Download</h3>
+        <p class="install-desc">Download the latest DMG from GitHub Releases.</p>
+        <a href="https://github.com/Softorize/spotsearch/releases/latest" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download v1.4.0
+        </a>
+        <p class="install-note"><strong>Note:</strong> On first launch, macOS may show a security warning. Go to System Settings &rarr; Privacy &amp; Security and click "Open Anyway".</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shortcuts -->
+  <section id="shortcuts">
+    <h2 class="section-title">Keyboard Shortcuts</h2>
+    <p class="section-subtitle">Designed for keyboard-first workflows.</p>
+    <table class="shortcuts-table">
+      <thead>
+        <tr>
+          <th>Shortcut</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><kbd>&#x2325;</kbd> + <kbd>Space</kbd></td>
+          <td>Open / close SpotSearch</td>
+        </tr>
+        <tr>
+          <td><kbd>&#x2191;</kbd> / <kbd>&#x2193;</kbd></td>
+          <td>Navigate results</td>
+        </tr>
+        <tr>
+          <td><kbd>&#x23CE;</kbd></td>
+          <td>Open selected file</td>
+        </tr>
+        <tr>
+          <td><kbd>Space</kbd></td>
+          <td>Quick preview with Quick Look</td>
+        </tr>
+        <tr>
+          <td><kbd>&#x2318;</kbd> + <kbd>&#x23CE;</kbd></td>
+          <td>Reveal in Finder</td>
+        </tr>
+        <tr>
+          <td><kbd>&#x2318;</kbd> + <kbd>C</kbd></td>
+          <td>Copy file path to clipboard</td>
+        </tr>
+        <tr>
+          <td><kbd>Esc</kbd></td>
+          <td>Close window</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="https://github.com/Softorize/spotsearch" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/Softorize/spotsearch/releases" target="_blank" rel="noopener">Releases</a>
+      <a href="https://github.com/Softorize/spotsearch/issues" target="_blank" rel="noopener">Issues</a>
+    </div>
+    <p class="footer-copy">MIT License &middot; Built by Softorize</p>
+  </footer>
+
+  <script>
+    function copyCode(btn, text) {
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
